@@ -144,7 +144,7 @@ services:
   catalog-ms:
     build:
       context: ./catalog
-      dockerfile: Dockerfile
+      dockerfile: ../Dockerfile
     image: ahmedyehia.demo/catalog-ms:latest
     container_name: catalog-ms
     ports:
@@ -159,7 +159,7 @@ services:
   stock-ms:
     build:
       context: ./stock
-      dockerfile: Dockerfile
+      dockerfile: ../Dockerfile
     image: ahmedyehia.demo/stock-ms:latest
     container_name: stock-ms
     ports:
@@ -174,7 +174,7 @@ services:
   checkout-ms:
     build:
       context: ./checkout
-      dockerfile: Dockerfile
+      dockerfile: ../Dockerfile
     image: ahmedyehia.demo/checkout-ms:latest
     container_name: checkout-ms
     ports:
