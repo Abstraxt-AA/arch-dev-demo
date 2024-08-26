@@ -1,0 +1,31 @@
+syntax = "proto3";
+package com.example.demo.checkout;
+option java_package = "com.example.demo.checkout.proto";
+option java_multiple_files = true;
+option java_generate_equals_and_hash = true;
+
+message RequestWrapper {
+  oneof request {
+    ValidateOrderRequest validate_order_request = 1;
+  }
+}
+
+message ResponseWrapper {
+  oneof response {
+    ValidateOrderResponse validate_order_response = 1;
+  }
+}
+
+message ValidateOrderRequest {
+  string country_code = 1;
+  repeated OrderItem items = 2;
+}
+
+message OrderItem {
+  int64 product_id = 1;
+  int64 quantity = 2;
+}
+
+message ValidateOrderResponse {
+  bool is_valid = 1;
+}

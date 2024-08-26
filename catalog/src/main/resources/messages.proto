@@ -1,0 +1,48 @@
+syntax = "proto3";
+package com.example.demo.catalog;
+option java_package = "com.example.demo.catalog.proto";
+option java_multiple_files = true;
+option java_generate_equals_and_hash = true;
+
+message RequestWrapper {
+  oneof request {
+    CreateProductRequest create_product_request = 1;
+  }
+}
+
+message CreateProductRequest {
+  string sku = 1;
+  bool is_enabled = 2;
+  repeated ProductAttribute attributes = 3;
+}
+
+message ProductDto {
+  string sku = 1;
+  bool is_enabled = 2;
+  repeated ProductAttribute attributes = 3;
+}
+
+message ProductAttribute {
+  int64 attribute_id = 1;
+  oneof value {
+    int32 int_value = 2;
+    int64 bigint_value = 3;
+    double decimal_value = 4;
+    string varchar_value = 5;
+    bytes blob_value = 6;
+    string datetime_value = 7;
+  }
+}
+
+message ResponseWrapper {
+  oneof response {
+    CreateProductResponse create_product_response = 1;
+  }
+}
+
+message CreateProductResponse {
+  int64 id = 1;
+  oneof response {
+    ProductDto product = 2;
+  }
+}

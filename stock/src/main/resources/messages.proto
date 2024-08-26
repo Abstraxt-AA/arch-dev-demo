@@ -1,0 +1,46 @@
+syntax = "proto3";
+package com.example.demo.stock;
+option java_package = "com.example.demo.stock.proto";
+option java_multiple_files = true;
+option java_generate_equals_and_hash = true;
+
+message RequestWrapper {
+  oneof request {
+    UpsertStockRequest upsert_stock_request = 1;
+    ReserveOrderRequest reserve_order_request = 2;
+  }
+}
+
+message UpsertStockRequest {
+  int64 product_id = 1;
+  string country_code = 2;
+  int64 quantity = 3;
+}
+
+message ReserveOrderRequest {
+  repeated ReserveItem items = 1;
+}
+
+message ReserveItem {
+  int64 product_id = 1;
+  string country_code = 2;
+  int64 quantity = 3;
+}
+
+message ResponseWrapper {
+  oneof response {
+    StockMessage upsert_stock_response = 1;
+    ReserveOrderResponse reserve_order_response = 2;
+  }
+}
+
+message StockMessage {
+  int64 product_id = 1;
+  string country_code = 2;
+  int64 available_stock = 3;
+}
+
+message ReserveOrderResponse {
+  bool success = 1;
+  repeated StockMessage stocks = 2;
+}

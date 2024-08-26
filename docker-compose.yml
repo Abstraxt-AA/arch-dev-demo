@@ -1,0 +1,106 @@
+services:
+  kafka-broker:
+    image: apache/kafka:latest
+    container_name: kafka-broker
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,LOCALHOST://:9094
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-broker:9092,LOCALHOST://localhost:9094
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,LOCALHOST:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_NUM_PARTITIONS: 1
+    ports:
+      - 9094:9094
+  kafka-ui:
+    container_name: kafka-ui
+    image: provectuslabs/kafka-ui:latest
+    restart: always
+    depends_on:
+      - kafka-broker
+    ports:
+      - 9080:8080
+    environment:
+      DYNAMIC_CONFIG_ENABLED: true
+      KAFKA_CLUSTERS_0_NAME: kafka
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-broker:9092
+  database:
+    container_name: database
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: example
+    volumes:
+      - /mnt/c/Users/ahmedy/tmp/demo/init-db/:/docker-entrypoint-initdb.d/:ro
+      - /home/user/config-db/:/etc/mysql/conf.d/:ro
+    ports:
+      - 3306:3306
+  adminer:
+    container_name: adminer
+    image: adminer:latest
+    ports:
+      - 3080:8080
+  cache:
+    container_name: cache
+    image: redis:latest
+    ports:
+      - 6379:6379
+  openobserve:
+    container_name: openobserve
+    image: public.ecr.aws/zinclabs/openobserve:latest
+    ports:
+      - 5080:5080
+    environment:
+      ZO_ROOT_USER_EMAIL: root@example.com
+      ZO_ROOT_USER_PASSWORD: example
+  product-status-cdc:
+    container_name: product-status-cdc
+    image: zendesk/maxwell:latest
+    restart: always
+    depends_on:
+      - database
+      - kafka-broker
+    command: "bin/maxwell --user=root --password=example --host=database --schema_database=maxwell-product-status --client_id=34001 --replica_server_id=34001 --filter='exclude: *.*, include:catalog.product' --producer='kafka' --kafka_topic='product_status' --kafka.bootstrap.servers='kafka-broker:9092'"
+  stock-cdc:
+    container_name: stock-cdc
+    image: zendesk/maxwell:latest
+    restart: always
+    depends_on:
+      - database
+      - kafka-broker
+    command: "bin/maxwell --user=root --password=example --host=database --schema_database=maxwell-stock --client_id=34002 --replica_server_id=34002 --filter='exclude: *.*, include:stock.ticker' --producer=kafka --kafka_topic=stock --kafka.bootstrap.servers='kafka-broker:9092'"
+  catalog-ms:
+    container_name: catalog-ms
+    image: ahmedyehia.demo/catalog-ms:latest
+    build: 
+      context: ./catalog
+      dockerfile: ../Dockerfile
+    ports:
+      - 8081:8080
+    depends_on:
+      - database
+  stock-ms:
+    container_name: stock-ms
+    image: ahmedyehia.demo/stock-ms:latest
+    build: 
+      context: ./stock
+      dockerfile: ../Dockerfile
+    ports:
+      - 8082:8080
+    depends_on:
+      - database
+  checkout-ms:
+    container_name: checkout-ms
+    image: ahmedyehia.demo/checkout-ms:latest
+    build: 
+      context: ./checkout
+      dockerfile: ../Dockerfile
+    ports:
+      - 8083:8080
+    depends_on:
+      - cache
+
